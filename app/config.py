@@ -13,10 +13,11 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        env_ignore_empty=True,
     )
 
     project_root: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[1])
-    data_dir: Path = Field(default_factory=lambda: Path.cwd() / "data")
+    data_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[1] / "data")
     index_dir_name: str = "index"
 
     mistral_api_key: str | None = Field(default=None, validation_alias="MISTRAL_API_KEY")

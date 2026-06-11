@@ -1,0 +1,35 @@
+# Large PDF books
+*.pdf
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# OCR caches
+data/ocr_cache_*.json
+
+# Git
+.git/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Scripts (not needed for deployment)
+scripts/
+
+# Architecture doc
+RAG Chatbot Architecture Doc V2.md
+
+# Gemini
+.gemini/

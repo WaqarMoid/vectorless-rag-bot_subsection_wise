@@ -28,3 +28,5 @@ desktop.ini
 
 # Gemini artifacts
 .gemini/
+
+.vercel
