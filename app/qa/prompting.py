@@ -7,6 +7,7 @@ def build_messages(
     question: str,
     nodes: list[RetrievedNode],
     out_of_bounds_text: str,
+    history: list | None = None,
 ) -> tuple[str, str]:
     context_blocks: list[str] = []
     for item in nodes:
@@ -39,7 +40,23 @@ def build_messages(
         "3) Mention 'JSON' in your response and wrap the output in a JSON code block."
     )
 
+    # Build conversation history block if available
+    history_block = ""
+    if history:
+        recent = history[-6:]  # last 3 pairs max
+        history_lines = []
+        for turn in recent:
+            role = turn.role if hasattr(turn, 'role') else turn.get('role', '')
+            content = turn.content if hasattr(turn, 'content') else turn.get('content', '')
+            # Truncate long assistant replies
+            if role == "assistant" and len(content) > 500:
+                content = content[:500] + "..."
+            label = "User" if role == "user" else "Assistant"
+            history_lines.append(f"{label}: {content}")
+        history_block = "Conversation history:\n" + "\n".join(history_lines) + "\n\n"
+
     user = (
+        f"{history_block}"
         f"Question:\n{question}\n\n"
         f"Context:\n\n{'\n\n'.join(context_blocks)}"
     )

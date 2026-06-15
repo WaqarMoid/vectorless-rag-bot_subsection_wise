@@ -15,47 +15,47 @@
       --font: 'Raleway', sans-serif;
 
       /* Dark mode (default) */
-      --bg-primary: #0f1923;
-      --bg-secondary: #162231;
-      --bg-sidebar: #0c1520;
-      --bg-input: #1a2d3f;
-      --bg-hover: #1e3448;
-      --border: rgba(56, 89, 119, 0.35);
-      --border-active: rgba(0, 194, 168, 0.5);
-      --text-primary: #e8edf2;
-      --text-secondary: #8da4b8;
-      --text-muted: #5a7a94;
-      --accent: #00c2a8;
-      --accent-hover: #00dbbf;
-      --accent-bg: rgba(0, 194, 168, 0.12);
-      --user-msg-bg: #1a3a4a;
-      --user-msg-border: rgba(0, 194, 168, 0.3);
-      --bot-msg-bg: #162231;
-      --bot-msg-border: rgba(56, 89, 119, 0.3);
-      --shadow: 0 4px 24px rgba(0,0,0,0.3);
-      --scrollbar-thumb: #2a4a60;
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-sidebar: #080808;
+      --bg-input: #161616;
+      --bg-hover: #1a1a1a;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(0, 200, 83, 0.5);
+      --text-primary: #f0f0f0;
+      --text-secondary: #a0a0a0;
+      --text-muted: #606060;
+      --accent: #00c853;
+      --accent-hover: #00e676;
+      --accent-bg: rgba(0, 200, 83, 0.10);
+      --user-msg-bg: #0d1a0d;
+      --user-msg-border: rgba(0, 200, 83, 0.25);
+      --bot-msg-bg: #111111;
+      --bot-msg-border: rgba(255, 255, 255, 0.06);
+      --shadow: 0 4px 24px rgba(0,0,0,0.5);
+      --scrollbar-thumb: #2a2a2a;
     }
 
     [data-theme="light"] {
-      --bg-primary: #f5f7fa;
+      --bg-primary: #f5f5f5;
       --bg-secondary: #ffffff;
-      --bg-sidebar: #eef2f6;
-      --bg-input: #f0f3f7;
-      --bg-hover: #e4e9ef;
+      --bg-sidebar: #eeeeee;
+      --bg-input: #f0f0f0;
+      --bg-hover: #e0e0e0;
       --border: rgba(0, 0, 0, 0.08);
-      --border-active: rgba(0, 150, 130, 0.4);
-      --text-primary: #1a2332;
-      --text-secondary: #556677;
-      --text-muted: #8899aa;
-      --accent: #009688;
-      --accent-hover: #00b0a0;
-      --accent-bg: rgba(0, 150, 136, 0.08);
-      --user-msg-bg: #e8f5f3;
-      --user-msg-border: rgba(0, 150, 136, 0.25);
+      --border-active: rgba(0, 150, 60, 0.4);
+      --text-primary: #111111;
+      --text-secondary: #444444;
+      --text-muted: #888888;
+      --accent: #00963a;
+      --accent-hover: #00b344;
+      --accent-bg: rgba(0, 150, 58, 0.08);
+      --user-msg-bg: #e8f5e9;
+      --user-msg-border: rgba(0, 150, 58, 0.2);
       --bot-msg-bg: #ffffff;
       --bot-msg-border: rgba(0, 0, 0, 0.06);
       --shadow: 0 4px 24px rgba(0,0,0,0.06);
-      --scrollbar-thumb: #c5cdd5;
+      --scrollbar-thumb: #c0c0c0;
     }
 
     /* ===== RESET ===== */
@@ -180,7 +180,7 @@
     }
     .sidebar-footer .status-dot.ready {
       background: var(--accent);
-      box-shadow: 0 0 8px rgba(0, 194, 168, 0.4);
+      box-shadow: 0 0 8px rgba(0, 200, 83, 0.4);
     }
     .sidebar-footer .status-label {
       font-size: 0.78rem;
@@ -235,7 +235,7 @@
     .brand-logo .logo-icon {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, var(--accent), #007a6e);
+      background: linear-gradient(135deg, var(--accent), #005f27);
       border-radius: 7px;
       display: flex;
       align-items: center;
@@ -261,7 +261,7 @@
       color: var(--accent);
       padding: 3px 8px;
       border-radius: 4px;
-      border: 1px solid rgba(0, 194, 168, 0.2);
+      border: 1px solid rgba(0, 200, 83, 0.2);
     }
 
     .topbar-right {
@@ -332,7 +332,7 @@
       font-weight: 700;
     }
     .msg-row.bot .msg-avatar {
-      background: linear-gradient(135deg, var(--accent), #007a6e);
+      background: linear-gradient(135deg, var(--accent), #005f27);
       color: #fff;
     }
     .msg-row.user .msg-avatar {
@@ -382,7 +382,7 @@
       font-weight: 600;
       color: var(--accent);
       background: var(--accent-bg);
-      border: 1px solid rgba(0, 194, 168, 0.2);
+      border: 1px solid rgba(0, 200, 83, 0.2);
       border-radius: 6px;
     }
     .retrieval-tag svg { flex-shrink: 0; }
@@ -414,13 +414,13 @@
       border-radius: 5px;
       background: var(--accent-bg);
       color: var(--accent);
-      border: 1px solid rgba(0, 194, 168, 0.2);
+      border: 1px solid rgba(0, 200, 83, 0.2);
       cursor: help;
       position: relative;
       transition: all 0.2s;
     }
     .citation-tag:hover {
-      background: rgba(0, 194, 168, 0.2);
+      background: rgba(0, 200, 83, 0.2);
     }
     .citation-tag::after {
       content: attr(data-tooltip);
@@ -488,7 +488,7 @@
     }
     .input-row:focus-within {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0, 194, 168, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.1);
     }
 
     .input-row textarea {
@@ -810,10 +810,16 @@
       chatArea.scrollTop = chatArea.scrollHeight;
 
       try {
+        // Build conversation history from previous messages (before this new user message)
+        const history = session.messages.slice(0, -1).slice(-6).map(m => ({
+          role: m.role === "bot" ? "assistant" : m.role,
+          content: m.text
+        }));
+
         const resp = await fetch("/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: text })
+          body: JSON.stringify({ query: text, history: history })
         });
         const data = await resp.json();
         removeTypingIndicator();

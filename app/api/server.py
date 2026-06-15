@@ -14,8 +14,14 @@ from app.ingest.pipeline import ingest_two_books
 from app.qa.engine import ChatEngine
 
 
+class HistoryTurn(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     query: str = Field(min_length=1)
+    history: list[HistoryTurn] = Field(default_factory=list)
 
 
 class CitationResponse(BaseModel):
@@ -152,7 +158,7 @@ def chat(request: ChatRequest) -> ChatResponse:
         detail = app.state.startup_error or "Engine is not initialized."
         raise HTTPException(status_code=503, detail=detail)
 
-    result = app.state.engine.ask(request.query)
+    result = app.state.engine.ask(request.query, request.history)
     return ChatResponse(
         answer=result.answer,
         out_of_bounds=result.out_of_bounds,
