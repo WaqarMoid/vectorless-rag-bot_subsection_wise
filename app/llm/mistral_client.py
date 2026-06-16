@@ -53,8 +53,8 @@ class MistralClient:
 
         request_data = json.dumps(payload).encode("utf-8")
         
-        max_retries = 6
-        base_delay = 1.0  # seconds
+        max_retries = 8
+        base_delay = 2.0  # seconds
         
         for attempt in range(max_retries):
             request = Request(

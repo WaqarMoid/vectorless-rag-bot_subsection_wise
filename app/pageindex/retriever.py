@@ -36,7 +36,7 @@ class TreeRetriever:
             for child in node.children:
                 self._collect_leaf_nodes(child)
 
-    def retrieve(self, question: str) -> list[RetrievedNode]:
+    def retrieve(self, question: str, history: list | None = None) -> list[RetrievedNode]:
         if not self.leaf_nodes:
             print("[TreeRetriever] No leaf nodes available in the index.")
             return []
@@ -55,12 +55,33 @@ class TreeRetriever:
         
         toc_hierarchy = "\n".join(toc_lines)
 
+        # Step 1.5: Build conversation history block if available
+        history_block = ""
+        if history:
+            recent = history[-6:]  # last 3 pairs max
+            history_lines = []
+            for turn in recent:
+                role = turn.role if hasattr(turn, 'role') else turn.get('role', '')
+                content = turn.content if hasattr(turn, 'content') else turn.get('content', '')
+                # Truncate long assistant replies to save tokens
+                if role == "assistant" and len(content) > 400:
+                    content = content[:400] + "..."
+                label = "User" if role == "user" else "Assistant"
+                history_lines.append(f"{label}: {content}")
+            history_block = (
+                "\n\nConversation history (use this to understand what the user is referring to):\n"
+                + "\n".join(history_lines)
+            )
+
         # Step 2: Query Mistral to route user query to the most relevant subsections
         system_prompt = (
             "You are a Table of Contents (TOC) routing agent for a Vectorless RAG system. "
             "You are shown the hierarchical structure (Book -> Chapter -> Subsection) of the library. "
             "Your task is to select the most relevant Subsection IDs that are likely to contain the facts "
             "needed to answer the user's question.\n"
+            "IMPORTANT: If the user's message is a follow-up (e.g. 'explain in detail', 'tell me more', "
+            "'what about X?'), use the conversation history to understand what topic they are referring to, "
+            "and select subsections relevant to THAT topic.\n"
             "Rules:\n"
             f"1. Select at most {self.settings.max_context_subsections} Subsection IDs.\n"
             "2. If the question is outside the scope of the books (cannot be answered by any of the sections), "
@@ -74,7 +95,8 @@ class TreeRetriever:
         )
 
         user_prompt = (
-            f"Question:\n{question}\n\n"
+            f"Question:\n{question}\n"
+            f"{history_block}\n\n"
             f"Library Table of Contents Hierarchy:\n\n{toc_hierarchy}\n\n"
             "Select the most relevant Subsection IDs:"
         )

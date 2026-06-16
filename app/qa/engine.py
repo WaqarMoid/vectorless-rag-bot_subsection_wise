@@ -35,11 +35,8 @@ class ChatEngine:
         if not query:
             return self._out_of_bounds()
 
-        # Step 0: Rewrite follow-up queries using conversation history
-        retrieval_query = self._rewrite_query(query, history or [])
-
-        # Step 1: Semantic routing (use rewritten query for better retrieval)
-        context = self.retriever.retrieve(retrieval_query)
+        # Step 1: Semantic routing (pass history so retriever understands follow-ups)
+        context = self.retriever.retrieve(query, history=history or [])
 
         # Step 2: Pre-generation guardrails
         if self.guardrails.should_refuse_before_generation(context):
@@ -147,69 +144,3 @@ class ChatEngine:
         except json.JSONDecodeError:
             return None
         return None
-
-    def _rewrite_query(self, current_query: str, history: list) -> str:
-        """Rewrite an ambiguous follow-up query into a standalone question
-        using recent conversation history. If history is empty or the query
-        already looks self-contained, return it as-is."""
-        if not history:
-            return current_query
-
-        # Only use the last few turns to keep the prompt small
-        recent = history[-6:]  # last 3 pairs max
-
-        # Quick heuristic: if the query is long enough and contains
-        # domain-relevant keywords, skip the rewrite to save an API call
-        domain_keywords = [
-            "motor", "compressor", "boiler", "transformer", "hvac", "pump",
-            "fan", "blower", "steam", "heat", "energy", "power", "voltage",
-            "combustion", "fuel", "insulation", "efficiency", "refrigeration",
-            "lighting", "vfd", "vsd", "bee", "electrical", "thermal",
-        ]
-        lower_q = current_query.lower()
-        word_count = len(current_query.split())
-        has_keyword = any(kw in lower_q for kw in domain_keywords)
-        if word_count >= 8 and has_keyword:
-            return current_query
-
-        # Build a compact conversation snippet
-        convo_lines = []
-        for turn in recent:
-            role = turn.role if hasattr(turn, 'role') else turn.get('role', '')
-            content = turn.content if hasattr(turn, 'content') else turn.get('content', '')
-            # Truncate long assistant replies to save tokens
-            if role == "assistant" and len(content) > 300:
-                content = content[:300] + "..."
-            convo_lines.append(f"{role.upper()}: {content}")
-
-        convo_text = "\n".join(convo_lines)
-
-        system_prompt = (
-            "You are a query rewriter. Given a conversation history and the user's latest message, "
-            "rewrite the latest message into a single, fully self-contained question that can be "
-            "understood WITHOUT any conversation history. "
-            "The rewritten query must preserve the user's original intent exactly. "
-            "If the latest message is already self-contained, return it unchanged. "
-            "Reply with ONLY the rewritten question, nothing else."
-        )
-        user_prompt = (
-            f"Conversation history:\n{convo_text}\n\n"
-            f"Latest user message: {current_query}\n\n"
-            f"Rewritten standalone question:"
-        )
-
-        try:
-            response = self.llm.generate_text(
-                system_prompt,
-                user_prompt,
-                temperature=0.0,
-                max_output_tokens=200,
-            )
-            rewritten = response.text.strip().strip('"').strip()
-            if rewritten:
-                print(f"[ChatEngine] Query rewritten: '{current_query}' -> '{rewritten}'")
-                return rewritten
-        except Exception as exc:
-            print(f"[ChatEngine] Query rewrite failed, using original: {exc}")
-
-        return current_query
