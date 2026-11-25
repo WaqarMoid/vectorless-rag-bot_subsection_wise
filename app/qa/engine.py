@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from app.config import Settings, get_settings
-from app.llm.mistral_client import MistralClient
+from app.llm.gemini_client import GeminiClient
 from app.models import ChatResult, Citation
 from app.pageindex.retriever import TreeRetriever
 from app.pageindex.store import PageIndexStore
@@ -16,7 +16,7 @@ from app.qa.prompting import build_messages
 class ChatEngine:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.llm = MistralClient(settings)
+        self.llm = GeminiClient(settings)
         self.index = PageIndexStore.load(settings)
         self.retriever = TreeRetriever(
             settings=settings,
@@ -42,7 +42,7 @@ class ChatEngine:
         if self.guardrails.should_refuse_before_generation(context):
             return self._out_of_bounds()
 
-        # Step 3: Build prompts and call Mistral LLM
+        # Step 3: Build prompts and call Gemini LLM
         # Use the ORIGINAL query + history for answer generation (gives full conversational context)
         system_prompt, user_prompt = build_messages(
             question=query,
@@ -50,18 +50,14 @@ class ChatEngine:
             out_of_bounds_text=self.settings.out_of_bounds_text,
             history=history or [],
         )
-        
-        try:
-            raw_response = self.llm.generate_text(
-                system_prompt,
-                user_prompt,
-                temperature=self.settings.answer_temperature,
-                response_format={"type": "json_object"}
-            ).text
-            parsed = self._parse_model_json(raw_response)
-        except Exception as exc:
-            print(f"[ChatEngine] LLM generation failed: {exc}")
-            return self._out_of_bounds()
+
+        raw_response = self.llm.generate_text(
+            system_prompt,
+            user_prompt,
+            temperature=self.settings.answer_temperature,
+            response_format={"type": "json_object"}
+        ).text
+        parsed = self._parse_model_json(raw_response)
 
         if parsed is None:
             return self._out_of_bounds()

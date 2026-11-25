@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
-  <img src="https://img.shields.io/badge/Mistral_AI-FF7000?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkwyIDdsIDEwIDUgMTAtNS0xMC01eiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Tesseract_OCR-4285F4?style=for-the-badge&logo=google&logoColor=white" />
 </p>
@@ -51,7 +51,7 @@ graph TB
         A["📄 Raw PDF Books"] --> B["🖼️ Page-to-Image Renderer<br/>(PyMuPDF / fitz)"]
         B --> C["📝 OCR Text Extraction<br/>(Tesseract OCR)"]
         C --> D["✂️ TOC-Aware Chunking Engine"]
-        D --> E["🤖 LLM Summarization<br/>(Mistral API)"]
+        D --> E["🤖 LLM Summarization<br/>(Gemini API)"]
         E --> F["💾 tree.json<br/>(Navigation Tree)"]
         E --> G["💾 pages.jsonl<br/>(Raw Text Chunks)"]
     end
@@ -59,9 +59,9 @@ graph TB
     subgraph "Phase 2: Runtime Query Execution"
         direction TB
         H["👤 User Question"] --> I["🌐 FastAPI Web Server"]
-        I --> J["🔀 TOC Tree Retriever<br/>(Mistral API)"]
+        I --> J["🔀 TOC Tree Retriever<br/>(Gemini API)"]
         J --> K["📖 Context Assembly<br/>(pages.jsonl lookup)"]
-        K --> L["🤖 Grounded Answer Generation<br/>(Mistral API)"]
+        K --> L["🤖 Grounded Answer Generation<br/>(Gemini API)"]
         L --> M["🛡️ Guardrails Engine"]
         M --> N["📎 Citation Formatter"]
         N --> O["💬 JSON Response + UI"]
@@ -93,7 +93,7 @@ flowchart LR
 
     subgraph TOC["📋 TOC Parsing"]
         SCAN["Scan first 22 pages<br/>for TOC content"]
-        LLM_TOC["Mistral LLM extracts<br/>structured TOC:<br/>Chapters → Subsections<br/>with page ranges"]
+        LLM_TOC["Gemini LLM extracts<br/>structured TOC:<br/>Chapters → Subsections<br/>with page ranges"]
         STRUCT["Hierarchical<br/>TOC Structure"]
     end
 
@@ -103,7 +103,7 @@ flowchart LR
     end
 
     subgraph SUMMARY["📝 Summarization"]
-        SUM_LLM["Mistral LLM generates<br/>2-3 sentence summary<br/>for each subsection"]
+        SUM_LLM["Gemini LLM generates<br/>2-3 sentence summary<br/>for each subsection"]
         TREE["tree.json<br/>(node_id, title,<br/>summary, pages)"]
         PAGES["pages.jsonl<br/>(full OCR text<br/>per subsection)"]
     end
@@ -128,7 +128,7 @@ sequenceDiagram
     participant UI as 🖥️ Frontend UI
     participant API as 🌐 FastAPI Server
     participant RET as 🔀 Tree Retriever
-    participant LLM as 🤖 Mistral LLM
+    participant LLM as 🤖 Gemini LLM
     participant IDX as 💾 Index Store
     participant GRD as 🛡️ Guardrails
     participant CIT as 📎 Citation Engine
@@ -173,7 +173,7 @@ flowchart TB
     Q["User Query"] --> PRE{"Pre-Generation<br/>Guardrail"}
 
     PRE -->|"No relevant<br/>subsections found"| REFUSE["🚫 Out of Bounds<br/>Response"]
-    PRE -->|"Contexts<br/>retrieved ✅"| GEN["🤖 LLM Generation<br/>(Mistral Large)"]
+    PRE -->|"Contexts<br/>retrieved ✅"| GEN["🤖 LLM Generation<br/>(Gemini 3.8 Flash)"]
 
     GEN --> POST{"Post-Generation<br/>Guardrail"}
 
@@ -250,7 +250,7 @@ toc-vectorless-rag-chatbot/
 │   │   └── store.py                  # Disk I/O for tree.json & pages.jsonl
 │   │
 │   ├── llm/                          # AI Gateway
-│   │   └── mistral_client.py         # REST client with exponential backoff retries
+│   │   └── gemini_client.py          # REST client with exponential backoff retries
 │   │
 │   ├── qa/                           # Query Engine
 │   │   ├── engine.py                 # ChatEngine: orchestrates retrieval → generation
@@ -289,7 +289,7 @@ toc-vectorless-rag-chatbot/
 | **Index Layer** | `app/pageindex/indexer.py` | LLM-powered TOC extraction & hierarchical tree building | Ingestion |
 | **Index Layer** | `app/pageindex/retriever.py` | TOC tree traversal to route queries to relevant subsections | Runtime |
 | **Index Layer** | `app/pageindex/store.py` | JSON/JSONL serialization for tree + page records | Both |
-| **AI Gateway** | `app/llm/mistral_client.py` | Mistral REST API client with retry logic (429/500/503) | Both |
+| **AI Gateway** | `app/llm/gemini_client.py` | Gemini REST API client with retry logic (429/500/502/503/504) | Both |
 | **Query Engine** | `app/qa/engine.py` | Full QA pipeline: retrieve → guard → generate → cite | Runtime |
 | **Query Engine** | `app/qa/guardrails.py` | Pre/post-generation refusal (hallucination prevention) | Runtime |
 | **Query Engine** | `app/qa/prompting.py` | Prompt templates for grounded answer generation | Runtime |
@@ -306,7 +306,7 @@ The ingestion pipeline converts raw scanned PDF books into a structured, searcha
 
 1. **PDF → Images**: PyMuPDF renders each page at 300 DPI
 2. **Images → Text**: Tesseract OCR extracts raw text (cached to avoid re-processing)
-3. **TOC Extraction**: Mistral LLM parses the first 22 pages to identify the Table of Contents structure (Chapters → Subsections with page ranges)
+3. **TOC Extraction**: Gemini LLM parses the first 22 pages to identify the Table of Contents structure (Chapters → Subsections with page ranges)
 4. **TOC-Aware Chunking**: Text is split by subsection boundaries from the TOC, creating one chunk per logical subsection
 5. **Summarization**: Each subsection chunk gets a 2-3 sentence LLM-generated summary
 6. **Index Persistence**: The tree (`tree.json`) and page records (`pages.jsonl`) are saved to disk
@@ -315,10 +315,10 @@ The ingestion pipeline converts raw scanned PDF books into a structured, searcha
 
 When a user asks a question, the system executes:
 
-1. **TOC Routing** — The full TOC hierarchy is presented to Mistral LLM, which selects the most relevant 1-3 subsection IDs
+1. **TOC Routing** — The full TOC hierarchy is presented to Gemini LLM, which selects the most relevant 1-3 subsection IDs
 2. **Context Assembly** — Raw OCR text for the selected subsections is fetched from `pages.jsonl`
 3. **Pre-Generation Guard** — Refuses if no relevant subsections were found
-4. **Grounded Generation** — Mistral generates an answer constrained to the provided context, outputting `{answer, citation_ids, grounded}`
+4. **Grounded Generation** — Gemini generates an answer constrained to the provided context, outputting `{answer, citation_ids, grounded}`
 5. **Post-Generation Guard** — Validates: answer is non-empty, `grounded=true`, citation IDs exist in the retrieved context, no hallucinated references
 6. **Citation Formatting** — Appends book title, chapter, subsection, and page range to each citation
 
@@ -327,7 +327,7 @@ When a user asks a question, the system executes:
 | Decision | Rationale |
 |---|---|
 | **No vector database** | Eliminates infrastructure complexity; TOC-based routing is more interpretable |
-| **Mistral Large for routing** | High-quality structured output for TOC navigation |
+| **Gemini 3.8 Flash for routing & QA** | High-speed, 1M-context reasoning with strict JSON structured output |
 | **OCR with caching** | BEE guides are scanned PDFs; caching avoids re-processing on rebuild |
 | **Strict guardrails** | Energy efficiency is a technical domain — hallucinations are unacceptable |
 | **Pre-built index in repo** | Deployment doesn't require PDFs or re-ingestion |
@@ -342,7 +342,7 @@ When a user asks a question, the system executes:
 - **Python 3.12+**
 - **Tesseract OCR** installed and available in PATH
 - **Poppler** (for `pdf2image`) installed and available in PATH
-- **Mistral API Key** from [console.mistral.ai](https://console.mistral.ai)
+- **Gemini API Key** from [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 ### Installation
 
@@ -366,9 +366,9 @@ pip install -r requirements.txt
 # Copy the example env file
 cp .env.example .env
 
-# Edit .env with your Mistral API key
-# MISTRAL_API_KEY=your_key_here
-# MISTRAL_MODEL=mistral-large-latest
+# Edit .env with your Gemini API key
+# GEMINI_API_KEY=your_key_here
+# GEMINI_MODEL=gemini-3.8-flash
 ```
 
 ### Running Locally
@@ -402,7 +402,7 @@ python scripts/ingest_books.py \
 The app is deployed as a Vercel Python serverless function:
 
 - **Live URL**: [https://toc-vectorless-rag-chatbot.vercel.app](https://toc-vectorless-rag-chatbot.vercel.app)
-- **Environment Variables**: Set `MISTRAL_API_KEY` and `MISTRAL_MODEL` in the Vercel dashboard
+- **Environment Variables**: Set `GEMINI_API_KEY` and `GEMINI_MODEL` (`gemini-3.8-flash`) in the Vercel dashboard
 - **Index Data**: Pre-built `data/index/` files are included in the deployment
 
 ```bash
@@ -460,5 +460,5 @@ This project was developed for academic/research purposes as part of BEE Energy 
 ---
 
 <p align="center">
-  Built with ❤️ using <strong>Mistral AI</strong> + <strong>FastAPI</strong> + <strong>Tesseract OCR</strong>
+  Built with ❤️ using <strong>Google Gemini</strong> + <strong>FastAPI</strong> + <strong>Tesseract OCR</strong>
 </p>

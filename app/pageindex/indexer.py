@@ -6,12 +6,12 @@ from collections import Counter
 from typing import Any
 
 from app.config import Settings
-from app.llm.mistral_client import MistralClient
+from app.llm.gemini_client import GeminiClient
 from app.models import PageRecord, TreeNode
 
 
 class PageIndexBuilder:
-    def __init__(self, settings: Settings, llm: MistralClient) -> None:
+    def __init__(self, settings: Settings, llm: GeminiClient) -> None:
         self.settings = settings
         self.llm = llm
 

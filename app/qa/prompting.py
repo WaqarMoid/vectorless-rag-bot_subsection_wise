@@ -37,7 +37,7 @@ def build_messages(
         "1) For any supported answer, set grounded=true and include the citation_ids (e.g. \"BOOK_1-C1-S1\") for every section used.\n"
         f"2) For unsupported/out-of-bounds questions, return exactly:\n"
         f"   {{\"answer\": \"{out_of_bounds_text}\", \"citation_ids\": [], \"grounded\": false}}\n"
-        "3) Mention 'JSON' in your response and wrap the output in a JSON code block."
+        "3) Output ONLY raw valid JSON (no markdown fences or extra text outside the JSON)."
     )
 
     # Build conversation history block if available

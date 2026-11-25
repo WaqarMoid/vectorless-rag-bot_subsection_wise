@@ -1,1 +1,1 @@
-from app.llm.mistral_client import MistralClient
+from app.llm.gemini_client import GeminiClient

@@ -158,7 +158,10 @@ def chat(request: ChatRequest) -> ChatResponse:
         detail = app.state.startup_error or "Engine is not initialized."
         raise HTTPException(status_code=503, detail=detail)
 
-    result = app.state.engine.ask(request.query, request.history)
+    try:
+        result = app.state.engine.ask(request.query, request.history)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
     return ChatResponse(
         answer=result.answer,
         out_of_bounds=result.out_of_bounds,

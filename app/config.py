@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     data_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[1] / "data")
     index_dir_name: str = "index"
 
-    mistral_api_key: str | None = Field(default=None, validation_alias="MISTRAL_API_KEY")
-    mistral_model: str = Field(default="mistral-large-latest", validation_alias="MISTRAL_MODEL")
+    gemini_api_key: str | None = Field(default=None, validation_alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-3.8-flash", validation_alias="GEMINI_MODEL")
 
     max_context_subsections: int = 3
     max_context_chars: int = 16000

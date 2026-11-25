@@ -4,7 +4,7 @@ from pathlib import Path
 
 from app.config import Settings
 from app.ingest.pdf_loader import PDFLoader
-from app.llm.mistral_client import MistralClient
+from app.llm.gemini_client import GeminiClient
 from app.models import PageRecord
 from app.pageindex.indexer import PageIndexBuilder
 from app.pageindex.store import PageIndexStore
@@ -44,7 +44,7 @@ def ingest_two_books(
         all_pages.extend(pages)
 
     # Step 2: Build TOC tree and chunks
-    llm = MistralClient(settings)
+    llm = GeminiClient(settings)
     builder = PageIndexBuilder(settings, llm)
     tree, chunks = builder.build_tree(all_pages)
 

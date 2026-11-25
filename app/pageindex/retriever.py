@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 
 from app.config import Settings
-from app.llm.mistral_client import MistralClient
+from app.llm.gemini_client import GeminiClient
 from app.models import PageRecord, TreeNode
 
 
@@ -16,7 +16,7 @@ class RetrievedNode:
 
 
 class TreeRetriever:
-    def __init__(self, settings: Settings, llm: MistralClient, root: TreeNode, pages: list[PageRecord]) -> None:
+    def __init__(self, settings: Settings, llm: GeminiClient, root: TreeNode, pages: list[PageRecord]) -> None:
         self.settings = settings
         self.llm = llm
         self.root = root
@@ -73,7 +73,7 @@ class TreeRetriever:
                 + "\n".join(history_lines)
             )
 
-        # Step 2: Query Mistral to route user query to the most relevant subsections
+        # Step 2: Query Gemini to route user query to the most relevant subsections
         system_prompt = (
             "You are a Table of Contents (TOC) routing agent for a Vectorless RAG system. "
             "You are shown the hierarchical structure (Book -> Chapter -> Subsection) of the library. "
@@ -86,12 +86,11 @@ class TreeRetriever:
             f"1. Select at most {self.settings.max_context_subsections} Subsection IDs.\n"
             "2. If the question is outside the scope of the books (cannot be answered by any of the sections), "
             "set 'insufficient': true.\n"
-            "3. You MUST respond with a valid JSON object matching this schema:\n"
+            "3. You MUST respond ONLY with a valid JSON object matching this schema:\n"
             "{\n"
             "  \"selected_ids\": [\"NODE_ID1\", \"NODE_ID2\"],\n"
             "  \"insufficient\": false\n"
-            "}\n"
-            "4. Mention 'JSON' in your response and wrap the output in a JSON code block."
+            "}"
         )
 
         user_prompt = (
@@ -101,17 +100,13 @@ class TreeRetriever:
             "Select the most relevant Subsection IDs:"
         )
 
-        try:
-            response = self.llm.generate_text(
-                system_prompt,
-                user_prompt,
-                temperature=self.settings.retrieval_temperature,
-                response_format={"type": "json_object"}
-            )
-            payload = self._parse_json(response.text)
-        except Exception as exc:
-            print(f"[TreeRetriever] LLM retrieval failed: {exc}")
-            return []
+        response = self.llm.generate_text(
+            system_prompt,
+            user_prompt,
+            temperature=self.settings.retrieval_temperature,
+            response_format={"type": "json_object"}
+        )
+        payload = self._parse_json(response.text)
 
         if not payload or payload.get("insufficient") is True:
             return []
