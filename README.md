@@ -173,7 +173,7 @@ flowchart TB
     Q["User Query"] --> PRE{"Pre-Generation<br/>Guardrail"}
 
     PRE -->|"No relevant<br/>subsections found"| REFUSE["🚫 Out of Bounds<br/>Response"]
-    PRE -->|"Contexts<br/>retrieved ✅"| GEN["🤖 LLM Generation<br/>(Gemini 3.8 Flash)"]
+    PRE -->|"Contexts<br/>retrieved ✅"| GEN["🤖 LLM Generation<br/>(Gemini API)"]
 
     GEN --> POST{"Post-Generation<br/>Guardrail"}
 
@@ -289,7 +289,7 @@ toc-vectorless-rag-chatbot/
 | **Index Layer** | `app/pageindex/indexer.py` | LLM-powered TOC extraction & hierarchical tree building | Ingestion |
 | **Index Layer** | `app/pageindex/retriever.py` | TOC tree traversal to route queries to relevant subsections | Runtime |
 | **Index Layer** | `app/pageindex/store.py` | JSON/JSONL serialization for tree + page records | Both |
-| **AI Gateway** | `app/llm/gemini_client.py` | Gemini REST API client with retry logic (429/500/502/503/504) | Both |
+| **AI Gateway** | `app/llm/gemini_client.py` | Gemini REST API client with automatic multi-model fallback | Both |
 | **Query Engine** | `app/qa/engine.py` | Full QA pipeline: retrieve → guard → generate → cite | Runtime |
 | **Query Engine** | `app/qa/guardrails.py` | Pre/post-generation refusal (hallucination prevention) | Runtime |
 | **Query Engine** | `app/qa/prompting.py` | Prompt templates for grounded answer generation | Runtime |
@@ -327,7 +327,7 @@ When a user asks a question, the system executes:
 | Decision | Rationale |
 |---|---|
 | **No vector database** | Eliminates infrastructure complexity; TOC-based routing is more interpretable |
-| **Gemini 3.8 Flash for routing & QA** | High-speed, 1M-context reasoning with strict JSON structured output |
+| **Automatic Gemini model fallback** | High-speed 1M-context reasoning with strict JSON output and automatic failover across healthy Gemini models |
 | **OCR with caching** | BEE guides are scanned PDFs; caching avoids re-processing on rebuild |
 | **Strict guardrails** | Energy efficiency is a technical domain — hallucinations are unacceptable |
 | **Pre-built index in repo** | Deployment doesn't require PDFs or re-ingestion |
@@ -368,7 +368,6 @@ cp .env.example .env
 
 # Edit .env with your Gemini API key
 # GEMINI_API_KEY=your_key_here
-# GEMINI_MODEL=gemini-3.8-flash
 ```
 
 ### Running Locally
@@ -402,7 +401,7 @@ python scripts/ingest_books.py \
 The app is deployed as a Vercel Python serverless function:
 
 - **Live URL**: [https://toc-vectorless-rag-chatbot.vercel.app](https://toc-vectorless-rag-chatbot.vercel.app)
-- **Environment Variables**: Set `GEMINI_API_KEY` and `GEMINI_MODEL` (`gemini-3.8-flash`) in the Vercel dashboard
+- **Environment Variables**: Set `GEMINI_API_KEY` in the Vercel dashboard (model selection & fallback are automatic)
 - **Index Data**: Pre-built `data/index/` files are included in the deployment
 
 ```bash

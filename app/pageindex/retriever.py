@@ -69,8 +69,9 @@ class TreeRetriever:
                 label = "User" if role == "user" else "Assistant"
                 history_lines.append(f"{label}: {content}")
             history_block = (
-                "\n\nConversation history (use this to understand what the user is referring to):\n"
+                "Conversation history (use this to resolve follow-ups and pronouns):\n"
                 + "\n".join(history_lines)
+                + "\n\n"
             )
 
         # Step 2: Query Gemini to route user query to the most relevant subsections
@@ -80,12 +81,13 @@ class TreeRetriever:
             "Your task is to select the most relevant Subsection IDs that are likely to contain the facts "
             "needed to answer the user's question.\n"
             "IMPORTANT: If the user's message is a follow-up (e.g. 'explain in detail', 'tell me more', "
-            "'what about X?'), use the conversation history to understand what topic they are referring to, "
-            "and select subsections relevant to THAT topic.\n"
+            "'elaborate', 'why?', 'what about X?'), NEVER mark 'insufficient': true just because the "
+            "follow-up wording is short. Use the Conversation history to identify the active topic and "
+            "select the Subsection IDs relevant to THAT topic.\n"
             "Rules:\n"
             f"1. Select at most {self.settings.max_context_subsections} Subsection IDs.\n"
-            "2. If the question is outside the scope of the books (cannot be answered by any of the sections), "
-            "set 'insufficient': true.\n"
+            "2. Only set 'insufficient': true if the underlying topic (considering Conversation history) "
+            "is genuinely outside the scope of the books.\n"
             "3. You MUST respond ONLY with a valid JSON object matching this schema:\n"
             "{\n"
             "  \"selected_ids\": [\"NODE_ID1\", \"NODE_ID2\"],\n"
@@ -94,8 +96,8 @@ class TreeRetriever:
         )
 
         user_prompt = (
-            f"Question:\n{question}\n"
-            f"{history_block}\n\n"
+            f"{history_block}"
+            f"Question:\n{question}\n\n"
             f"Library Table of Contents Hierarchy:\n\n{toc_hierarchy}\n\n"
             "Select the most relevant Subsection IDs:"
         )
@@ -111,7 +113,16 @@ class TreeRetriever:
         if not payload or payload.get("insufficient") is True:
             return []
 
-        selected_ids = [str(item).strip() for item in payload.get("selected_ids", []) if item]
+        raw_ids = payload.get("selected_ids", [])
+        if isinstance(raw_ids, str):
+            raw_ids = [raw_ids]
+        selected_ids: list[str] = []
+        for item in raw_ids:
+            if not item:
+                continue
+            cleaned_id = str(item).strip().strip("[]").split("|")[0].strip().upper()
+            if cleaned_id in self.leaf_nodes and cleaned_id not in selected_ids:
+                selected_ids.append(cleaned_id)
         selected_ids = selected_ids[:self.settings.max_context_subsections]
         
         results: list[RetrievedNode] = []

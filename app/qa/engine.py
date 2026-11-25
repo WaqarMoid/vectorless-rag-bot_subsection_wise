@@ -64,8 +64,11 @@ class ChatEngine:
 
         answer = str(parsed.get("answer", "")).strip()
         grounded = bool(parsed.get("grounded", False))
-        citation_ids = self._normalize_citation_ids(parsed.get("citation_ids", []))
         available_citation_ids = {item.node.node_id for item in context}
+        citation_ids = [
+            cid for cid in self._normalize_citation_ids(parsed.get("citation_ids", []))
+            if cid in available_citation_ids
+        ]
 
         # Step 4: Post-generation guardrails
         if not grounded:
@@ -109,7 +112,7 @@ class ChatEngine:
             return []
         normalized: list[str] = []
         for item in raw:
-            token = str(item).strip().upper()
+            token = str(item).strip().strip("[]").split("|")[0].strip().upper()
             if re.fullmatch(r"[A-Z0-9\-_]+", token):
                 normalized.append(token)
         return normalized

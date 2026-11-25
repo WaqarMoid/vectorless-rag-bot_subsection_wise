@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     index_dir_name: str = "index"
 
     gemini_api_key: str | None = Field(default=None, validation_alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-3.8-flash", validation_alias="GEMINI_MODEL")
+    gemini_model: str | None = Field(default=None, validation_alias="GEMINI_MODEL")
 
     max_context_subsections: int = 3
     max_context_chars: int = 16000

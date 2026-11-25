@@ -137,7 +137,7 @@ def main():
     
     m1 = metadata_p.add_run("System Architecture and Processing Documentation\n")
     set_run_font(m1, "Raleway", size_pt=11, color_rgb=(15, 25, 35), bold=True)
-    m2 = metadata_p.add_run("Target Models: Gemini 3.8 Flash (routing) & Gemini 3.8 Flash (generation)\n")
+    m2 = metadata_p.add_run("Target Models: Google Gemini (automatic model selection & fallback for routing & generation)\n")
     set_run_font(m2, "Raleway", size_pt=10, color_rgb=(15, 25, 35))
     m3 = metadata_p.add_run("Domain: BEE Energy Efficiency Guide Books (Electrical & Thermal Utilities)\n")
     set_run_font(m3, "Raleway", size_pt=10, color_rgb=(15, 25, 35))
@@ -266,7 +266,7 @@ def main():
     # List sequence
     add_bullet_styled(doc, "The user enters a question in the Carbon Tatva chatbot interface.", bold_prefix="1. Query Receipt: ")
     add_bullet_styled(doc, "The FastAPI backend forwards the query to the Tree Retriever.", bold_prefix="2. Delegation: ")
-    add_bullet_styled(doc, "The Tree Retriever loads `tree.json` and presents the hierarchical outline (titles & summaries) to the routing model (Gemini 3.8 Flash).", bold_prefix="3. TOC Routing: ")
+    add_bullet_styled(doc, "The Tree Retriever loads `tree.json` and presents the hierarchical outline (titles & summaries) to the routing model (Google Gemini).", bold_prefix="3. TOC Routing: ")
     add_bullet_styled(doc, "Gemini LLM identifies and outputs the specific subsection IDs (e.g., ELECTRICAL-C3-S2) that logically hold the answer.", bold_prefix="4. Subsection Selection: ")
     add_bullet_styled(doc, "The system fetches the exact raw text of those selected subsections from `pages.jsonl`.", bold_prefix="5. Context Fetching: ")
     add_bullet_styled(doc, "The Pre-Generation Guardrail checks if any relevant contexts were found. If none, it returns an immediate out-of-bounds response.", bold_prefix="6. Pre-Gen Check: ")
@@ -333,7 +333,7 @@ def main():
         ["Index Layer", "app/pageindex/indexer.py", "LLM-powered TOC parsing, structuring, and tree creation.", "Ingestion"],
         ["Index Layer", "app/pageindex/retriever.py", "Loads tree.json and delegates to routing LLM to select relevant subsection IDs.", "Runtime"],
         ["Index Layer", "app/pageindex/store.py", "Performs file disk I/O operations for tree.json and pages.jsonl.", "Both"],
-        ["AI Gateway", "app/llm/gemini_client.py", "Handles Google Gemini HTTP API requests with exponential backoff retries for robust operation.", "Both"],
+        ["AI Gateway", "app/llm/gemini_client.py", "Handles Google Gemini HTTP API requests with automatic multi-model fallback for robust operation.", "Both"],
         ["Query Engine", "app/qa/engine.py", "ChatEngine orchestrator executing TOC retrieval, guardrails, and generation.", "Runtime"],
         ["Query Engine", "app/qa/guardrails.py", "Performs pre-generation and post-generation checks to guarantee grounded answers.", "Runtime"]
     ]
@@ -366,7 +366,7 @@ def main():
 
     add_bullet_styled(doc, "The PyMuPDF library converts PDF pages to high-resolution PNG images. Rendering pages is necessary since the original BEE guides consist of scanned, non-searchable document pages.", bold_prefix="1. Page Extraction & Rendering: ")
     add_bullet_styled(doc, "PyTesseract executes optical character recognition. The raw output text is indexed page-by-page. To prevent repeating the expensive OCR process on script reruns, each page's text is cached as a JSON record.", bold_prefix="2. OCR Analysis & Caching: ")
-    add_bullet_styled(doc, "The system passes the text from the first 22 pages of each PDF (where the TOC is located) to Gemini 3.8 Flash. It prompts the model to return a structured JSON mapping containing the hierarchical Table of Contents, including exact starting and ending page numbers for every subchapter.", bold_prefix="3. TOC Structure Generation: ")
+    add_bullet_styled(doc, "The system passes the text from the first 22 pages of each PDF (where the TOC is located) to Google Gemini. It prompts the model to return a structured JSON mapping containing the hierarchical Table of Contents, including exact starting and ending page numbers for every subchapter.", bold_prefix="3. TOC Structure Generation: ")
     add_bullet_styled(doc, "Using the page ranges extracted from the TOC, the system segments the complete OCR text of the book into individual section chunks. This creates logical boundary chunking (e.g., 'Chapter 3: Section 2 - Compressed Air Systems') rather than arbitrary word-count chunking.", bold_prefix="4. TOC-Aware Chunking: ")
     add_bullet_styled(doc, "Gemini LLM reads the raw text of each subsection chunk and generates a 2-3 sentence overview. This overview captures the semantic core of the subsection.", bold_prefix="5. Semantic Summarization: ")
     add_bullet_styled(doc, "The hierarchical node metadata and summaries are written to `tree.json` (under 100KB, loaded fully in memory). The raw page text is written line-by-line to a JSON Lines file `pages.jsonl`.", bold_prefix="6. Serialization: ")
@@ -380,10 +380,10 @@ def main():
     set_run_font(run_pp2, "Raleway")
     
     add_bullet_styled(doc, "The server receives the user's question through a REST POST call to `/api/chat`.", bold_prefix="1. API Endpoint: ")
-    add_bullet_styled(doc, "The query is analyzed against the `tree.json` hierarchy. Gemini 3.8 Flash is prompted to inspect the chapter titles and subsection summaries and return a list of 1 to 3 subsection IDs that might contain the answer. This is the 'Vectorless' retrieval phase: it uses semantic LLM reasoning instead of cosine similarity.", bold_prefix="2. TOC Routing: ")
+    add_bullet_styled(doc, "The query is analyzed against the `tree.json` hierarchy. Google Gemini is prompted to inspect the chapter titles and subsection summaries and return a list of 1 to 3 subsection IDs that might contain the answer. This is the 'Vectorless' retrieval phase: it uses semantic LLM reasoning instead of cosine similarity.", bold_prefix="2. TOC Routing: ")
     add_bullet_styled(doc, "The system reads `pages.jsonl` and loads the exact raw OCR text corresponding to the chosen subsection IDs. This text becomes the 'Context'.", bold_prefix="3. Context Assembly: ")
     add_bullet_styled(doc, "The query and context are checked. If the list of selected sections is empty, the pipeline stops and responds with a pre-configured 'out-of-bounds' refutation.", bold_prefix="4. Pre-Generation Guardrail: ")
-    add_bullet_styled(doc, "The query and contexts are formatted into the grounding prompt. Gemini 3.8 Flash generates a response and is instructed to return: (1) the grounded answer, (2) the list of source node IDs used, and (3) a boolean flag verifying that the answer is completely sourced from the context.", bold_prefix="5. Response Generation: ")
+    add_bullet_styled(doc, "The query and contexts are formatted into the grounding prompt. Google Gemini generates a response and is instructed to return: (1) the grounded answer, (2) the list of source node IDs used, and (3) a boolean flag verifying that the answer is completely sourced from the context.", bold_prefix="5. Response Generation: ")
     add_bullet_styled(doc, "The post-generation module inspects the LLM response. It confirms that: (1) the grounding boolean is true, (2) all returned citation IDs exist in the retrieved context nodes, and (3) the text contains no hallucinated page numbers or figures. If any check fails, the answer is replaced with the out-of-bounds disclaimer.", bold_prefix="6. Post-Generation Validation: ")
     add_bullet_styled(doc, "The FastAPI backend appends specific metadata (such as exact book title, chapter title, and page range) to the citations and returns the complete JSON payload.", bold_prefix="7. Payload Construction: ")
 
@@ -415,7 +415,7 @@ def main():
         ["Pre-built Ingest Index", "FastAPI server runs on Vercel Serverless. Vercel functions have strict execution timeout limits and lack local Tesseract OCR binaries. By running the ingestion process offline and committing the completed `tree.json` and `pages.jsonl` files directly to the repository, Vercel only handles runtime routing and generation, executing in milliseconds."],
         ["OCR Text Caching", "Running PyTesseract OCR on 500+ pages of dense guidebooks takes over an hour. Implementing a cache file per page enables rapid iterative testing on the ingestion scripts without reprocessing pages."],
         ["Dual Guardrail Enforcement", "Technical guidebooks contain exact specifications, calculations, and safety values. Hallucinating a formula or standard could be dangerous. The dual-stage guardrail prevents out-of-domain answers and ensures citation safety."],
-        ["Gemini Client Retries", "Gemini API can suffer from occasional rate limiting (HTTP 429) or temporary server errors. The `gemini_client.py` contains a custom retry wrapper with exponential backoff and jitter to ensure robust service."],
+        ["Gemini Client Auto-Fallback", "Individual Gemini models can experience temporary high demand (HTTP 503) or quota limits (HTTP 429). `gemini_client.py` automatically falls back across healthy available Gemini models with zero hardcoded model lock-in."],
         ["Raleway Font & Carbon Tatva UI Theme", "To match the Carbon Tatva brand identity, the client interface is styled with a custom Navy/Teal palette. Raleway (a geometric sans-serif) is loaded and set as the sole typeface across all layouts to guarantee consistent visual branding."]
     ]
 
